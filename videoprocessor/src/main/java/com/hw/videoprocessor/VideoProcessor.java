@@ -9,9 +9,10 @@ import android.media.MediaExtractor;
 import android.media.MediaFormat;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaMuxer;
-import android.media.MediaRecorder;
 import android.net.Uri;
+import android.util.Log;
 import android.util.Pair;
+
 import com.hw.videoprocessor.util.AudioFadeUtil;
 import com.hw.videoprocessor.util.AudioUtil;
 import com.hw.videoprocessor.util.CL;
@@ -261,7 +262,7 @@ public class VideoProcessor {
         progressAve.setEndTimeMs(processor.endTimeMs == null ? durationMs : processor.endTimeMs);
         AtomicBoolean decodeDone = new AtomicBoolean(false);
         CountDownLatch muxerStartLatch = new CountDownLatch(1);
-        VideoEncodeThread encodeThread = new VideoEncodeThread(extractor, mediaMuxer,processor.bitrate,
+        VideoEncodeThread encodeThread = new VideoEncodeThread(extractor, mediaMuxer, processor.bitrate,
                 resultWidth, resultHeight, processor.iFrameInterval, processor.frameRate == null ? DEFAULT_FRAME_RATE : processor.frameRate, videoIndex,
                 decodeDone, muxerStartLatch);
         int srcFrameRate = VideoUtil.getFrameRate(processor.input);
@@ -297,10 +298,13 @@ public class VideoProcessor {
             CL.e(e2);
         }
         if (encodeThread.getException() != null) {
+            Log.e("VideoProcessor", "------>> encodeThread Exception:" + encodeThread.getException());
             throw encodeThread.getException();
         } else if (decodeThread.getException() != null) {
+            Log.e("VideoProcessor", "------>> decodeThread Exception:" + decodeThread.getException());
             throw decodeThread.getException();
         } else if (audioProcessThread.getException() != null) {
+            Log.e("VideoProcessor", "------>> audioProcessThread Exception:" + audioProcessThread.getException());
             throw audioProcessThread.getException();
         }
     }
@@ -1028,8 +1032,9 @@ public class VideoProcessor {
             this.input = input;
             return this;
         }
+
         public Processor input(Uri input) {
-            this.input = new MediaSource(context,input);
+            this.input = new MediaSource(context, input);
             return this;
         }
 
@@ -1120,19 +1125,19 @@ public class VideoProcessor {
             this.inputUri = inputUri;
         }
 
-        public void setDataSource(MediaMetadataRetriever retriever){
-            if(inputPath!=null){
+        public void setDataSource(MediaMetadataRetriever retriever) {
+            if (inputPath != null) {
                 retriever.setDataSource(inputPath);
-            }else{
-                retriever.setDataSource(context,inputUri);
+            } else {
+                retriever.setDataSource(context, inputUri);
             }
         }
 
         public void setDataSource(MediaExtractor extractor) throws IOException {
-            if(inputPath!=null){
+            if (inputPath != null) {
                 extractor.setDataSource(inputPath);
-            }else{
-                extractor.setDataSource(context,inputUri,null);
+            } else {
+                extractor.setDataSource(context, inputUri, null);
             }
         }
     }
